@@ -64,8 +64,8 @@ function Repository({match}) {
       {error && <ErrorMessage>{error}</ErrorMessage>}
       <ContextStyle>
         <SpaceBetween>
-          <div className="context-div">
-            <a style={{textDecoration: "none"}} href={url} target="_blank">
+          <div>
+            <a style={{textDecoration: "none"}} href={url} rel="noreferrer" target="_blank">
               {nameWithOwner ? (
                 <h1>{nameWithOwner}</h1>
               ) : (
@@ -78,7 +78,7 @@ function Repository({match}) {
             </p>
             <small>
               <em>
-                <a href="https://opensource.guide/how-to-contribute/" target="_blank">
+                <a href="https://opensource.guide/how-to-contribute/" rel="noreferrer" target="_blank">
                   Learn how to contribute to open source projects
                 </a>
               </em>
