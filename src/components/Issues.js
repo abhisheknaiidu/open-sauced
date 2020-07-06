@@ -7,7 +7,7 @@ import List from "../styles/List";
 import IssuesListItem from "../components/IssueListItem";
 import {InputButton} from "../styles/Button";
 import {CardPadding, CardHeader} from "../styles/Card";
-import Octicon, {getIconByName} from "@primer/octicons-react";
+import {IssueOpenedIcon} from "@primer/octicons-react";
 import {Spinner} from "../styles/Spinner";
 
 function Issues({repoName, owner}) {
@@ -15,16 +15,19 @@ function Issues({repoName, owner}) {
   const [loading, setLoading] = useState(false);
   const [cursor, setCursor] = useState(null);
   const [totalCount, setTotal] = useState(0);
+  const [issuesEnabled, setIssuesEnabled] = useState(null);
   const [offset, setOffset] = useState(0);
 
   useEffect(() => {
     setLoading(true);
     api.fetchIssuesQuery(owner, repoName).then(response => {
       const {data, totalCount} = response.data.gitHub.repositoryOwner.repository.issues;
+      const {hasIssuesEnabled} = response.data.gitHub.repositoryOwner.repository;
       const lastIssue = totalCount > 0 ? data[data.length - 1] : {};
       const {cursor} = lastIssue;
 
       setIssues(data);
+      setIssuesEnabled(hasIssuesEnabled);
       setCursor(cursor);
       setTotal(totalCount);
       setLoading(false);
@@ -74,6 +77,9 @@ function Issues({repoName, owner}) {
                     labels={issue.node.labels}
                     author={issue.node.author.login}
                     opened={issue.node.createdAt}
+                    participants={issue.node.participants}
+                    comments={issue.node.comments}
+                    milestone={issue.node.milestone}
                   />
                 </a>
               </li>
@@ -90,13 +96,26 @@ function Issues({repoName, owner}) {
       loading ? (
         <Spinner />
       ) : (
-        <EmptyPlaceholder>
-          <div style={{color: "grey"}}>
-            <Octicon size="large" verticalAlign="middle" icon={getIconByName("issue-opened")} />
-          </div>
-          <div className="helper">
-            No Issues found
-          </div>
+        <EmptyPlaceholder style={{marginTop: 100}}>
+          {issuesEnabled ? (
+            <div>
+              <div style={{color: "grey"}}>
+                <IssueOpenedIcon size="large" verticalAlign="middle" />
+              </div>
+              <div className="helper">
+                No Issues found
+              </div>
+            </div>
+          ) : (
+            <div>
+              <div style={{color: "grey"}}>
+                <IssueOpenedIcon size="large" verticalAlign="middle" />
+              </div>
+              <div className="helper">
+                Issues not enabled
+              </div>
+            </div>
+          )}
         </EmptyPlaceholder>
       )
     )

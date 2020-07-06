@@ -8,6 +8,7 @@ import registerServiceWorker from "./registerServiceWorker";
 import OneGraphApolloClient from "onegraph-apollo-client";
 import {ApolloProvider} from "react-apollo";
 import api from "./lib/apiGraphQL";
+import {getAppVersion} from "./lib/appVersion";
 
 const apolloClient = new OneGraphApolloClient({
   oneGraphAuth: Config.auth,
@@ -19,6 +20,15 @@ function Index() {
   const [isAdmin, setIsAdmin] = useState(null);
 
   useEffect(() => {
+    console.log(`%c
+ ██████╗ ██████╗ ███████╗███╗   ██╗    ███████╗ █████╗ ██╗   ██╗ ██████╗███████╗██████╗ 
+██╔═══██╗██╔══██╗██╔════╝████╗  ██║    ██╔════╝██╔══██╗██║   ██║██╔════╝██╔════╝██╔══██╗
+██║   ██║██████╔╝█████╗  ██╔██╗ ██║    ███████╗███████║██║   ██║██║     █████╗  ██║  ██║
+██║   ██║██╔═══╝ ██╔══╝  ██║╚██╗██║    ╚════██║██╔══██║██║   ██║██║     ██╔══╝  ██║  ██║
+╚██████╔╝██║     ███████╗██║ ╚████║    ███████║██║  ██║╚██████╔╝╚██████╗███████╗██████╔╝
+ ╚═════╝ ╚═╝     ╚══════╝╚═╝  ╚═══╝    ╚══════╝╚═╝  ╚═╝ ╚═════╝  ╚═════╝╚══════╝╚═════╝%c v${getAppVersion()}`,
+    "color:#f6d82b",
+    "color:green;font-weight:bold");
     const auth = Config.auth;
     auth.isLoggedIn("github").then(isLoggedIn => {
       if (isLoggedIn) {
@@ -67,6 +77,11 @@ function Index() {
   };
 
   const _handleLogOut = () => {
+    // Set the local react states so that rogue requests aren't made
+    // after log out but before we re-render.
+    setUser(null);
+    setIsAdmin(false);
+    setLogin(false);
     const auth = Config.auth;
     auth.logout("github").then(() => {
       // Remove the local onegraph-auth storage
@@ -75,9 +90,6 @@ function Index() {
       localStorage.removeItem("adminBar");
       // Remove the local logged in status storage
       localStorage.removeItem("isLoggedIn");
-      setUser(null);
-      setIsAdmin(false);
-      setLogin(false);
     });
   };
 

@@ -1,32 +1,37 @@
 import React from "react";
-import Label from "../styles/Label";
 import {FlexStart, FloatRight, FloatLeft, FlexColumn, FlexHeader, FlexCenter} from "../styles/Grid";
-import Octicon, {getIconByName} from "@primer/octicons-react";
+import {StarIcon} from "@primer/octicons-react";
 import Avatar from "../styles/Avatar";
 import {chevronRight} from "../icons";
+import {humanizeNumber} from "../lib/humanizeNumber";
+import {truncate} from "../lib/truncate";
 
 function RepoListItem({goal, stars}) {
   return (
     <FlexHeader>
       <FloatLeft>
         <FlexCenter>
-          <Avatar alt="avatar" src={`https://avatars.githubusercontent.com/${goal.title.split("/")[0].replace(/\s+/g, "")}`} />
+          <Avatar
+            alt="avatar"
+            src={`https://avatars.githubusercontent.com/${goal.full_name.split("/")[0].replace(/\s+/g, "")}`}
+          />
           <FlexColumn className="details">
-            <p>{goal.title.replace(/\s+/g, "")}</p>
-            {stars && (
-              <FlexStart>
+            <p>{truncate(goal.full_name.replace(/\s+/g, ""), 60)}</p>
+            {stars ? (
+              <FlexStart style={{alignItems: "flex-start"}}>
                 <div>
-                  <Octicon alt="star" verticalAlign="middle" icon={getIconByName("star")} />
+                  <StarIcon alt="star" verticalAlign="middle" />
                 </div>
-                <p>{stars}</p>
+                <p>{humanizeNumber(stars)}</p>
               </FlexStart>
+            ) : (
+              <p><i>Sync in Progress</i></p>
             )}
           </FlexColumn>
         </FlexCenter>
       </FloatLeft>
       <FloatRight>
         <FlexCenter>
-          <Label>TBD</Label>
           <img alt="pointing right icon" src={chevronRight} />
         </FlexCenter>
       </FloatRight>

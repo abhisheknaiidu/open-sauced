@@ -44,6 +44,19 @@ const operationsDoc = `
                   }
                 }
               }
+              comments {
+                totalCount
+              }
+              milestone {
+                title
+              }
+              participants(first: 3) {
+                totalCount
+                nodes {
+                  login
+                  avatarUrl
+                }
+              }
               createdAt
             }
           }
@@ -66,8 +79,10 @@ const operationsDoc = `
         repository(name: $repo) {
           id
           name
+          description
           nameWithOwner
           url
+          hasIssuesEnabled
           owner {
             login
           }
@@ -78,8 +93,30 @@ const operationsDoc = `
           issues {
             totalCount
           }
+          pullRequests {
+            totalCount
+          }
           stargazers {
             totalCount
+          }
+          licenseInfo {
+            name
+          }
+          languages(first: 3) {
+            totalCount
+            nodes {
+              name
+              color
+            }
+          }
+          contributors_oneGraph(
+            includeAnonymousContributors: false
+          ) {
+            nodes {
+              login
+              avatarUrl
+              contributionCount
+            }
           }
         }
       }
@@ -90,6 +127,7 @@ const operationsDoc = `
     gitHub {
       repositoryOwner(login: $owner) {
         repository(name: $repo) {
+          hasIssuesEnabled
           issues(first: 5, states: OPEN, orderBy: {field: CREATED_AT, direction: DESC}) {
             totalCount
             data: edges {
@@ -109,6 +147,19 @@ const operationsDoc = `
                       name
                       color
                     }
+                  }
+                }
+                comments {
+                  totalCount
+                }
+                milestone {
+                  title
+                }
+                participants(first: 3) {
+                  totalCount
+                  nodes {
+                    login
+                    avatarUrl
                   }
                 }
                 createdAt
@@ -145,6 +196,19 @@ const operationsDoc = `
                     }
                   }
                 }
+                comments {
+                  totalCount
+                }
+                milestone {
+                  title
+                }
+                participants(first: 3) {
+                  totalCount
+                  nodes {
+                    login
+                    avatarUrl
+                  }
+                }
                 createdAt
               }
             }
@@ -179,6 +243,19 @@ const operationsDoc = `
                     }
                   }
                 }
+                comments {
+                  totalCount
+                }
+                milestone {
+                  title
+                }
+                participants(first: 3) {
+                  totalCount
+                  nodes {
+                    login
+                    avatarUrl
+                  }
+                }
                 createdAt
               }
             }
@@ -208,6 +285,13 @@ const operationsDoc = `
       viewer {
         repository(name: "open-sauced-goals") {
           id
+          data: object(expression: "master:data.json") {
+            id
+            ... on GitHubBlob {
+              id
+              text
+            }
+          }
           issues(
             first: 10
             states: OPEN
@@ -216,7 +300,7 @@ const operationsDoc = `
             totalCount
             nodes {
               id
-              title
+              full_name: title
               body
               number
               labels(first: 3) {
@@ -365,6 +449,36 @@ const operationsDoc = `
       }
     }
   }
+
+  query FetchUserForkCount(
+    $repoName: String!
+    $repoOwner: String!
+  ) {
+    gitHub {
+      repository(name: $repoName, owner: $repoOwner) {
+        forks(affiliations: OWNER) {
+          totalCount
+        }
+      }
+    }
+  }
+
+  mutation ForkRepository(
+    $repoName: String!
+    $repoOwner: String!
+  ) {
+    gitHub {
+      createFork_oneGraph(
+        input: { repoName: $repoName, repoOwner: $repoOwner }
+      ) {
+        clientMutationId
+        repository {
+          id
+          url
+        }
+      }
+    }
+  }
 `;
 
 function fetchContributedRepoQuery() {
@@ -436,6 +550,14 @@ function updateGoal(id, title, state, notes) {
   });
 }
 
+function fetchUserForkCount(repoName, repoOwner) {
+  return fetchOneGraph(operationsDoc, "FetchUserForkCount", {repoName, repoOwner});
+}
+
+function forkRepository(repoName, repoOwner) {
+  return fetchOneGraph(operationsDoc, "ForkRepository", {repoName, repoOwner});
+}
+
 const api = {
   fetchRepositoryData: fetchRepoQuery,
   fetchContributedRepoQuery,
@@ -456,6 +578,8 @@ const api = {
   createOpenSaucedGoalsRepo,
   createGoal,
   updateGoal,
+  fetchUserForkCount,
+  forkRepository,
 };
 
 export default api;

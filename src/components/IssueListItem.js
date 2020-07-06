@@ -3,17 +3,20 @@ import {FloatRight, FloatLeft, FlexColumn, FlexHeader, FlexCenter} from "../styl
 import {chevronRight} from "../icons";
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
-import Octicon, {getIconByName} from "@primer/octicons-react";
+import {IssueOpenedIcon, CommentIcon, MilestoneIcon} from "@primer/octicons-react";
+import contrast from "contrast";
 
 dayjs.extend(relativeTime);
 
-function IssueListItem({title, labels, author, opened, type}) {
+function IssueListItem({title, labels, author, opened, type, participants, comments, milestone}) {
+  const participantsDiffCount = 3;
+  const participantsShowDiff = participants && participants.totalCount - participantsDiffCount;
   return (
     <FlexHeader>
       <FloatLeft>
         <FlexCenter>
           <span style={{marginRight: 10}}>
-            <Octicon verticalAlign="middle" icon={getIconByName("issue-opened")} />
+            <IssueOpenedIcon verticalAlign="middle" />
           </span>
           <FlexColumn className="details">
             <p>
@@ -22,7 +25,7 @@ function IssueListItem({title, labels, author, opened, type}) {
             <div>
               {labels.data.length > 0 && labels.data.map(label => (
                 <span
-                  style={{backgroundColor: `#${label.node.color}`}}
+                  style={{backgroundColor: `#${label.node.color}`, color: `${contrast(label.node.color) === "light" ? "black" : "white"}`}}
                   key={label.node.id}>
                   {label.node.name}
                 </span>
@@ -31,6 +34,26 @@ function IssueListItem({title, labels, author, opened, type}) {
             <div>
               {type === "issues" && <small style={{fontSize: 12}}>opened {dayjs(opened).fromNow()} by {author}</small>}
               {type === "contributions" && <small style={{fontSize: 12}}>opened {dayjs(opened).fromNow()}</small>}
+              <span className="issueHelper">
+                <CommentIcon className="icon" size={13} verticalAlign="middle" />
+                {comments && comments.totalCount}
+              </span>
+              {milestone && (
+                <span className="issueHelper">
+                  <MilestoneIcon className="icon" size={13} verticalAlign="middle" />
+                  {milestone.title}
+                </span>
+              )}
+              <div className="avatar-stack">
+                {participants && participants.nodes.map((user, key) => (
+                  <img className="avatar" key={key} src={user.avatarUrl} title={user.login} />
+                ))}
+                {
+                  participants &&
+                  participants.totalCount > participantsDiffCount &&
+                   (<div className="others">+{participantsShowDiff}</div>)
+                }
+              </div>
             </div>
           </FlexColumn>
         </FlexCenter>
@@ -43,4 +66,5 @@ function IssueListItem({title, labels, author, opened, type}) {
     </FlexHeader>
   );
 }
+
 export default IssueListItem;
